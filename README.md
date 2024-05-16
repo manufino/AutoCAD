@@ -190,10 +190,3 @@ group_items = acad.select_group("MyGroup")
 print(f"Objects in group 'MyGroup': {len(group_items)}")
 ```
 
-## Print the created layers for confirmation
-
-```python
-# Print the created layers for confirmation
-for layer in acad.doc.Layers:
-    print(f"Layer: {layer.Name}, Color: {layer.color}")
-```

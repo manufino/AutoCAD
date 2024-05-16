@@ -41,16 +41,16 @@ Below are some examples of how to use the library to automate operations in Auto
 acad = AutoCAD()
 ```
 
-## Repeat the "piatto" block horizontally
+## Repeat block horizontally
 
 ```python
-# Repeat the "piatto" block horizontally
+# Repeat the "blockname" block horizontally
 total_length = 100  # Total length X
-block_length = 10  # Length of the block "piatto"
+block_length = 10  # Length of the block "blockname"
 insertion_point = APoint(0, 0, 0)  # Initial insertion point
 
 # Execute the block repetition
-acad.repeat_block_horizontally("piatto", total_length, block_length, insertion_point)
+acad.repeat_block_horizontally("blockname", total_length, block_length, insertion_point)
 ```
 
 ## Set the visibility of a layer

@@ -1,206 +1,199 @@
 
 # AutoCAD Python Automation
 
-Questa libreria Python fornisce una serie di classi e metodi per interagire con AutoCAD utilizzando l'API COM. La libreria permette di automatizzare molte operazioni comuni in AutoCAD, come la creazione e la gestione di layer, oggetti, blocchi, attributi e gruppi di oggetti.
+This Python library provides a set of classes and methods to interact with AutoCAD using the COM API. The library allows automating many common operations in AutoCAD, such as creating and managing layers, objects, blocks, attributes, and groups of objects.
 
-## Funzionalità Principali
+## Main Features
 
-- **Gestione degli Strati (Layer)**: Creazione, modifica, impostazione della visibilità, blocco/sblocco, cambio del colore e gestione dello stile di linea dei layer.
-- **Gestione degli Oggetti**: Creazione, selezione, spostamento, scalatura, rotazione, allineamento e distribuzione di oggetti.
-- **Gestione dei Blocchi**: Inserimento, esportazione, creazione, modifica e rimozione di blocchi.
-- **Gestione degli Attributi**: Aggiunta, modifica e cancellazione di attributi nei blocchi.
-- **Input e Output dell'Utente**: Richiesta di input da parte dell'utente (punti, stringhe, numeri interi) e visualizzazione di messaggi.
-- **Gestione di Gruppi di Oggetti**: Creazione, modifica, aggiunta/rimozione di oggetti e selezione di gruppi.
+- **Layer Management**: Create, modify, set visibility, lock/unlock, change color, and manage layer linetype.
+- **Object Management**: Create, select, move, scale, rotate, align, and distribute objects.
+- **Block Management**: Insert, export, create, modify, and remove blocks.
+- **Attribute Management**: Add, modify, and delete block attributes.
+- **User Input and Output**: Request input from the user (points, strings, integers) and display messages.
+- **Group Management**: Create, modify, add/remove objects, and select groups.
 
-## Requisiti
+## Requirements
 
-- AutoCAD installato sul sistema.
+- AutoCAD installed on the system.
 - Python 3.x.
-- pacchetto `pywin32` installato (installabile tramite pip).
+- `pywin32` package installed (installable via pip).
 
-## Installazione
+## Installation
 
-1. Clona questo repository:
+1. Clone this repository:
    ```sh
-   git clone https://github.com/tuo-utente/autocad-python-automation.git
+   git clone https://github.com/your-username/autocad-python-automation.git
    ```
 
-2. Installa le dipendenze:
+2. Install the dependencies:
    ```sh
    pip install pywin32
    ```
 
-## Esempi di Utilizzo
+## Usage Examples
 
-Di seguito sono riportati alcuni esempi di utilizzo della libreria per automatizzare operazioni in AutoCAD.
+Below are some examples of how to use the library to automate operations in AutoCAD.
 
-## Creazione dell'oggetto AutoCAD
+## Create the AutoCAD object
 
 ```python
-# Creazione dell'oggetto AutoCAD
+# Create the AutoCAD object
 acad = AutoCAD()
 ```
 
-## Creazione dei layer standard per il disegno meccanico
+## Repeat the "piatto" block horizontally
 
 ```python
-# Creazione dei layer standard per il disegno meccanico
-acad.create_standard_layers()
-```
+# Repeat the "piatto" block horizontally
+total_length = 100  # Total length X
+block_length = 10  # Length of the block "piatto"
+insertion_point = APoint(0, 0, 0)  # Initial insertion point
 
-## Ripetizione del blocco "piatto" orizzontalmente
-
-```python
-# Ripetizione del blocco "piatto" orizzontalmente
-total_length = 100  # Lunghezza totale X
-block_length = 10  # Lunghezza del blocco "piatto"
-insertion_point = APoint(0, 0, 0)  # Punto di inserimento iniziale
-
-# Esegui la ripetizione del blocco
+# Execute the block repetition
 acad.repeat_block_horizontally("piatto", total_length, block_length, insertion_point)
 ```
 
-## Imposta la visibilità di un layer
+## Set the visibility of a layer
 
 ```python
-# Imposta la visibilità di un layer
+# Set the visibility of a layer
 acad.set_layer_visibility("Linea di mezzeria", visible=False)
 ```
 
-## Blocca un layer
+## Lock a layer
 
 ```python
-# Blocca un layer
+# Lock a layer
 acad.lock_layer("Quote", lock=True)
 ```
 
-## Elimina un layer
+## Delete a layer
 
 ```python
-# Elimina un layer
+# Delete a layer
 acad.delete_layer("Simboli")
 ```
 
-## Cambio del colore di un layer
+## Change the color of a layer
 
 ```python
-# Cambio del colore di un layer
+# Change the color of a layer
 acad.change_layer_color("Contorni", Color.YELLOW)
 ```
 
-## Gestione dello stile di linea del layer
+## Set the linetype of a layer
 
 ```python
-# Gestione dello stile di linea del layer
+# Set the linetype of a layer
 acad.set_layer_linetype("Assi", "DASHED")
 ```
 
-## Selezione di oggetti
+## Select objects
 
 ```python
-# Selezione di oggetti
+# Select objects
 selected_objects = acad.select_objects(object_type="AcDbLine", layer_name="Contorni")
-print(f"Oggetti selezionati: {len(selected_objects)}")
+print(f"Selected objects: {len(selected_objects)}")
 ```
 
-## Sposta, scala e ruota oggetti
+## Move, scale, and rotate objects
 
 ```python
-# Sposta, scala e ruota oggetti
+# Move, scale, and rotate objects
 for obj in selected_objects:
     acad.move_object(obj, APoint(10, 10, 0))
     acad.scale_object(obj, APoint(0, 0, 0), 2)
     acad.rotate_object(obj, APoint(0, 0, 0), 45)
 ```
 
-## Allineamento e distribuzione di oggetti
+## Align and distribute objects
 
 ```python
-# Allineamento e distribuzione di oggetti
+# Align and distribute objects
 acad.align_objects(selected_objects, alignment="left")
 acad.distribute_objects(selected_objects, spacing=5)
 ```
 
-## Inserimento di blocchi da file
+## Insert a block from a file
 
 ```python
-# Inserimento di blocchi da file
+# Insert a block from a file
 acad.insert_block_from_file("path_to_file.dwg", APoint(0, 0, 0))
 ```
 
-## Esportazione di blocchi
+## Export a block to a file
 
 ```python
-# Esportazione di blocchi
+# Export a block to a file
 acad.export_block_to_file("piatto", "path_to_export.dwg")
 ```
 
-## Modifica degli attributi
+## Modify block attributes
 
 ```python
-# Modifica degli attributi
+# Modify block attributes
 block_references = acad.get_block_coordinates("piatto")
 if block_references:
-    block_ref = block_references[0]  # Prendi il primo blocco trovato
+    block_ref = block_references[0]  # Get the first found block
     acad.modify_block_attribute(block_ref, "Tag", "NewValue")
 ```
 
-## Cancellazione degli attributi
+## Delete block attributes
 
 ```python
-# Cancellazione degli attributi
+# Delete block attributes
 acad.delete_block_attribute(block_ref, "Tag")
 ```
 
-## Richieste di input da utente
+## Request user input
 
 ```python
-# Richieste di input da utente
-point = acad.get_user_input_point("Seleziona un punto")
-text = acad.get_user_input_string("Inserisci un testo")
-integer = acad.get_user_input_integer("Inserisci un numero intero")
+# Request user input
+point = acad.get_user_input_point("Select a point")
+text = acad.get_user_input_string("Enter a string")
+integer = acad.get_user_input_integer("Enter an integer")
 ```
 
-## Messaggi di output all'utente
+## Display a message to the user
 
 ```python
-# Messaggi di output all'utente
-acad.show_message("Operazione completata")
+# Display a message to the user
+acad.show_message("Operation completed")
 ```
 
-## Creazione di gruppi di oggetti
+## Create a group of objects
 
 ```python
-# Creazione di gruppi di oggetti
+# Create a group of objects
 group = acad.create_group("MyGroup", selected_objects)
 ```
 
-## Aggiungi oggetti a un gruppo
+## Add objects to a group
 
 ```python
-# Aggiungi oggetti a un gruppo
+# Add objects to a group
 acad.add_to_group("MyGroup", selected_objects)
 ```
 
-## Rimuovi oggetti da un gruppo
+## Remove objects from a group
 
 ```python
-# Rimuovi oggetti da un gruppo
+# Remove objects from a group
 acad.remove_from_group("MyGroup", selected_objects)
 ```
 
-## Seleziona gruppi di oggetti
+## Select a group of objects
 
 ```python
-# Seleziona gruppi di oggetti
+# Select a group of objects
 group_items = acad.select_group("MyGroup")
-print(f"Oggetti nel gruppo 'MyGroup': {len(group_items)}")
+print(f"Objects in group 'MyGroup': {len(group_items)}")
 ```
 
-## Stampa i layer creati per conferma
+## Print the created layers for confirmation
 
 ```python
-# Stampa i layer creati per conferma
+# Print the created layers for confirmation
 for layer in acad.doc.Layers:
-    print(f"Layer: {layer.Name}, Colore: {layer.color}")
+    print(f"Layer: {layer.Name}, Color: {layer.color}")
 ```

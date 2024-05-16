@@ -2,7 +2,7 @@ import win32com.client
 import pythoncom
 from enum import Enum
 
-# Enum per rappresentare i colori comuni in AutoCAD
+# Enum to represent common colors in AutoCAD
 class Color(Enum):
     RED = 1
     YELLOW = 2
@@ -23,7 +23,7 @@ class Color(Enum):
         except KeyError:
             raise ValueError(f"Color '{name}' is not a valid color name")
 
-# Classe per rappresentare un punto 3D
+# Class to represent a 3D point
 class APoint:
     def __init__(self, x=0, y=0, z=0):
         self.x = x
@@ -39,7 +39,7 @@ class APoint:
     def __repr__(self):
         return f"APoint({self.x}, {self.y}, {self.z})"
 
-# Classe per rappresentare un layer
+# Class to represent a layer
 class Layer:
     def __init__(self, name, color=Color.WHITE, visible=True):
         self.name = name
@@ -49,7 +49,7 @@ class Layer:
     def __repr__(self):
         return f"Layer(name='{self.name}', color={self.color}, visible={self.visible})"
 
-# Classe per rappresentare un riferimento di blocco
+# Class to represent a block reference
 class BlockReference:
     def __init__(self, name, insertion_point, scale=1.0, rotation=0.0):
         self.name = name
@@ -60,7 +60,7 @@ class BlockReference:
     def __repr__(self):
         return f"BlockReference(name='{self.name}', insertion_point={self.insertion_point}, scale={self.scale}, rotation={self.rotation})"
 
-# Classe per rappresentare un testo
+# Class to represent a text object
 class Text:
     def __init__(self, content, insertion_point, height, alignment='left'):
         self.content = content
@@ -71,7 +71,7 @@ class Text:
     def __repr__(self):
         return f"Text(content='{self.content}', insertion_point={self.insertion_point}, height={self.height}, alignment='{self.alignment}')"
 
-# Classe per rappresentare una quota
+# Class to represent a dimension
 class Dimension:
     def __init__(self, start_point, end_point, text_point, dimension_type='aligned'):
         self.start_point = start_point
@@ -82,14 +82,14 @@ class Dimension:
     def __repr__(self):
         return f"Dimension(start_point={self.start_point}, end_point={self.end_point}, text_point={self.text_point}, dimension_type='{self.dimension_type}')"
 
-# Classe personalizzata per gestire le eccezioni di AutoCAD
+# Custom class for handling AutoCAD errors
 class AutoCADError(Exception):
     def __init__(self, message):
         super().__init__(message)
-        # Puoi aggiungere qui ulteriori logiche di gestione dell'errore, come il logging su file
+        # Additional error handling logic can be added here, such as logging to a file
         print(f"AutoCADError: {message}")
 
-# Classe principale per interagire con AutoCAD
+# Main class for interacting with AutoCAD
 class AutoCAD:
     def __init__(self):
         try:
@@ -98,31 +98,31 @@ class AutoCAD:
             self.doc = self.acad.ActiveDocument
             self.modelspace = self.doc.ModelSpace
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'inizializzazione di AutoCAD: {e}")
+            raise AutoCADError(f"Error initializing AutoCAD: {e}")
 
-    # Itera sugli oggetti nello spazio modello, opzionalmente filtrando per tipo di oggetto
+    # Iterate over objects in the model space, optionally filtering by object type
     def iter_objects(self, object_type=None):
         for obj in self.modelspace:
             if object_type is None or obj.EntityName == object_type:
                 yield obj
 
-    # Aggiunge un cerchio nello spazio modello
+    # Add a circle to the model space
     def add_circle(self, center, radius):
         try:
             circle = self.modelspace.AddCircle(center.to_variant(), radius)
             return circle
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'aggiunta di un cerchio: {e}")
+            raise AutoCADError(f"Error adding circle: {e}")
 
-    # Aggiunge una linea nello spazio modello
+    # Add a line to the model space
     def add_line(self, start_point, end_point):
         try:
             line = self.modelspace.AddLine(start_point.to_variant(), end_point.to_variant())
             return line
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'aggiunta di una linea: {e}")
+            raise AutoCADError(f"Error adding line: {e}")
 
-    # Aggiunge un rettangolo nello spazio modello
+    # Add a rectangle to the model space
     def add_rectangle(self, lower_left, upper_right):
         try:
             x1, y1 = lower_left.to_tuple()
@@ -138,25 +138,25 @@ class AutoCAD:
             polyline = self.modelspace.AddLightweightPolyline(points_variant)
             return polyline
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'aggiunta di un rettangolo: {e}")
+            raise AutoCADError(f"Error adding rectangle: {e}")
 
-    # Aggiunge un'ellisse nello spazio modello
+    # Add an ellipse to the model space
     def add_ellipse(self, center, major_axis, ratio):
         try:
             ellipse = self.modelspace.AddEllipse(center.to_variant(), major_axis.to_variant(), ratio)
             return ellipse
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'aggiunta di un'ellisse: {e}")
+            raise AutoCADError(f"Error adding ellipse: {e}")
 
-    # Aggiunge un testo nello spazio modello
+    # Add a text object to the model space
     def add_text(self, text):
         try:
             text_obj = self.modelspace.AddText(text.content, text.insertion_point.to_variant(), text.height)
             return text_obj
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'aggiunta di un testo: {e}")
+            raise AutoCADError(f"Error adding text: {e}")
 
-    # Aggiunge una quota nello spazio modello
+    # Add a dimension to the model space
     def add_dimension(self, dimension):
         try:
             dimension_obj = None
@@ -164,9 +164,9 @@ class AutoCAD:
                 dimension_obj = self.modelspace.AddDimAligned(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
             return dimension_obj
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'aggiunta di una quota: {e}")
+            raise AutoCADError(f"Error adding dimension: {e}")
 
-    # Ottiene i blocchi definiti dall'utente nel documento
+    # Get user-defined blocks in the document
     def get_user_defined_blocks(self):
         try:
             blocks = self.doc.Blocks
@@ -174,9 +174,9 @@ class AutoCAD:
                                    if not block.IsLayout and not block.Name.startswith('*') and block.Name != 'GENAXEH']
             return user_defined_blocks
         except Exception as e:
-            raise AutoCADError(f"Errore durante il recupero dei blocchi definiti dall'utente: {e}")
+            raise AutoCADError(f"Error getting user-defined blocks: {e}")
 
-    # Crea un nuovo layer
+    # Create a new layer
     def create_layer(self, layer):
         try:
             layers = self.doc.Layers
@@ -184,38 +184,38 @@ class AutoCAD:
             new_layer.Color = layer.color.value
             return new_layer
         except Exception as e:
-            raise AutoCADError(f"Errore durante la creazione del layer '{layer.name}': {e}")
+            raise AutoCADError(f"Error creating layer '{layer.name}': {e}")
 
-    # Imposta il layer attivo
+    # Set the active layer
     def set_active_layer(self, layer_name):
         try:
             self.doc.ActiveLayer = self.doc.Layers.Item(layer_name)
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'impostazione del layer attivo '{layer_name}': {e}")
+            raise AutoCADError(f"Error setting active layer '{layer_name}': {e}")
 
-    # Inserisce un blocco nello spazio modello
+    # Insert a block into the model space
     def insert_block(self, block):
         try:
             block_ref = self.modelspace.InsertBlock(block.insertion_point.to_variant(), block.name, block.scale, block.scale, block.scale, block.rotation)
             return block_ref
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'inserimento del blocco '{block.name}': {e}")
+            raise AutoCADError(f"Error inserting block '{block.name}': {e}")
 
-    # Salva il documento con un nuovo nome
+    # Save the document with a new name
     def save_as(self, file_path):
         try:
             self.doc.SaveAs(file_path)
         except Exception as e:
-            raise AutoCADError(f"Errore durante il salvataggio del documento come '{file_path}': {e}")
+            raise AutoCADError(f"Error saving document as '{file_path}': {e}")
 
-    # Apre un file esistente
+    # Open an existing file
     def open_file(self, file_path):
         try:
             self.acad.Documents.Open(file_path)
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'apertura del file '{file_path}': {e}")
+            raise AutoCADError(f"Error opening file '{file_path}': {e}")
 
-    # Ottiene le coordinate di inserimento di un blocco specifico
+    # Get the insertion coordinates of a specific block
     def get_block_coordinates(self, block_name):
         try:
             block_references = []
@@ -225,47 +225,31 @@ class AutoCAD:
                     block_references.append(APoint(insertion_point[0], insertion_point[1], insertion_point[2]))
             return block_references
         except Exception as e:
-            raise AutoCADError(f"Errore durante il recupero delle coordinate del blocco '{block_name}': {e}")
+            raise AutoCADError(f"Error getting coordinates of block '{block_name}': {e}")
 
-    # Elimina un oggetto
+    # Delete an object
     def delete_object(self, obj):
         try:
             obj.Delete()
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'eliminazione dell'oggetto: {e}")
+            raise AutoCADError(f"Error deleting object: {e}")
 
-    # Clona un oggetto
+    # Clone an object
     def clone_object(self, obj, new_insertion_point):
         try:
             cloned_obj = obj.Copy(new_insertion_point.to_variant())
             return cloned_obj
         except Exception as e:
-            raise AutoCADError(f"Errore durante la clonazione dell'oggetto: {e}")
+            raise AutoCADError(f"Error cloning object: {e}")
 
-    # Modifica una proprietà di un oggetto
+    # Modify a property of an object
     def modify_object_property(self, obj, property_name, new_value):
         try:
             setattr(obj, property_name, new_value)
         except Exception as e:
-            raise AutoCADError(f"Errore durante la modifica della proprietà '{property_name}' dell'oggetto: {e}")
+            raise AutoCADError(f"Error modifying property '{property_name}' of object: {e}")
 
-    # Crea una serie di layer standard per il disegno meccanico
-    def create_standard_layers(self):
-        standard_layers = [
-            {"name": "Linea di mezzeria", "color": Color.RED},
-            {"name": "Quote", "color": Color.GREEN},
-            {"name": "Contorni", "color": Color.BLUE},
-            {"name": "Assi", "color": Color.CYAN},
-            {"name": "Testi", "color": Color.MAGENTA},
-            {"name": "Simboli", "color": Color.YELLOW},
-            {"name": "Tratteggi", "color": Color.ORANGE},
-            {"name": "Costruzione", "color": Color.PURPLE}
-        ]
-
-        for layer in standard_layers:
-            self.create_layer(Layer(layer["name"], layer["color"]))
-
-    # Ripete orizzontalmente un blocco fino a raggiungere la lunghezza specificata
+    # Repeat a block horizontally until a specified length is reached
     def repeat_block_horizontally(self, block_name, total_length, block_length, insertion_point):
         try:
             x, y, z = insertion_point.x, insertion_point.y, insertion_point.z
@@ -275,41 +259,41 @@ class AutoCAD:
                 new_insertion_point = APoint(x + i * block_length, y, z)
                 self.insert_block(BlockReference(block_name, new_insertion_point))
         except Exception as e:
-            raise AutoCADError(f"Errore durante la ripetizione del blocco '{block_name}' orizzontalmente: {e}")
+            raise AutoCADError(f"Error repeating block '{block_name}' horizontally: {e}")
 
-    # Imposta la visibilità di un layer
+    # Set the visibility of a layer
     def set_layer_visibility(self, layer_name, visible=True):
         try:
             layer = self.doc.Layers.Item(layer_name)
             layer.LayerOn = visible
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'impostazione della visibilità del layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error setting visibility of layer '{layer_name}': {e}")
 
-    # Blocca o sblocca un layer
+    # Lock or unlock a layer
     def lock_layer(self, layer_name, lock=True):
         try:
             layer = self.doc.Layers.Item(layer_name)
             layer.Lock = lock
         except Exception as e:
-            raise AutoCADError(f"Errore durante il blocco/sblocco del layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error locking/unlocking layer '{layer_name}': {e}")
 
-    # Elimina un layer
+    # Delete a layer
     def delete_layer(self, layer_name):
         try:
             layer = self.doc.Layers.Item(layer_name)
             layer.Delete()
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'eliminazione del layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error deleting layer '{layer_name}': {e}")
 
-    # Cambio del colore di un layer
+    # Change the color of a layer
     def change_layer_color(self, layer_name, color):
         try:
             layer = self.doc.Layers.Item(layer_name)
             layer.color = color.value
         except Exception as e:
-            raise AutoCADError(f"Errore durante il cambio del colore del layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error changing color of layer '{layer_name}': {e}")
 
-    # Gestione dello stile di linea del layer
+    # Set the linetype of a layer
     def set_layer_linetype(self, layer_name, linetype_name):
         try:
             layer = self.doc.Layers.Item(layer_name)
@@ -318,28 +302,30 @@ class AutoCAD:
                 self.doc.Linetypes.Load(linetype_name, linetype_name)
             layer.Linetype = linetype_name
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'impostazione dello stile di linea del layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error setting linetype of layer '{layer_name}': {e}")
 
-    # Sposta, scala e ruota oggetti
+    # Move an object
     def move_object(self, obj, new_insertion_point):
         try:
             obj.Move(obj.InsertionPoint, new_insertion_point.to_variant())
         except Exception as e:
-            raise AutoCADError(f"Errore durante lo spostamento dell'oggetto: {e}")
+            raise AutoCADError(f"Error moving object: {e}")
 
+    # Scale an object
     def scale_object(self, obj, base_point, scale_factor):
         try:
             obj.ScaleEntity(base_point.to_variant(), scale_factor)
         except Exception as e:
-            raise AutoCADError(f"Errore durante la scalatura dell'oggetto: {e}")
+            raise AutoCADError(f"Error scaling object: {e}")
 
+    # Rotate an object
     def rotate_object(self, obj, base_point, rotation_angle):
         try:
             obj.Rotate(base_point.to_variant(), rotation_angle)
         except Exception as e:
-            raise AutoCADError(f"Errore durante la rotazione dell'oggetto: {e}")
+            raise AutoCADError(f"Error rotating object: {e}")
 
-    # Allineamento e distribuzione di oggetti
+    # Align objects
     def align_objects(self, objects, alignment="left"):
         try:
             if not objects:
@@ -353,8 +339,9 @@ class AutoCAD:
                 for obj in objects:
                     self.move_object(obj, APoint(max_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'allineamento degli oggetti: {e}")
+            raise AutoCADError(f"Error aligning objects: {e}")
 
+    # Distribute objects with specified spacing
     def distribute_objects(self, objects, spacing):
         try:
             if not objects:
@@ -364,71 +351,73 @@ class AutoCAD:
                 new_x = objects[i-1].InsertionPoint[0] + spacing
                 self.move_object(objects[i], APoint(new_x, objects[i].InsertionPoint[1], objects[i].InsertionPoint[2]))
         except Exception as e:
-            raise AutoCADError(f"Errore durante la distribuzione degli oggetti: {e}")
+            raise AutoCADError(f"Error distributing objects: {e}")
 
-    # Inserimento di blocchi da file
+    # Insert a block from a file
     def insert_block_from_file(self, file_path, insertion_point, scale=1.0, rotation=0.0):
         try:
             block_name = self.doc.Blocks.Import(file_path, file_path)
             block_ref = self.modelspace.InsertBlock(insertion_point.to_variant(), block_name, scale, scale, scale, rotation)
             return block_ref
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'inserimento del blocco da file '{file_path}': {e}")
+            raise AutoCADError(f"Error inserting block from file '{file_path}': {e}")
 
-    # Esportazione di blocchi
+    # Export a block to a file
     def export_block_to_file(self, block_name, file_path):
         try:
             block = self.doc.Blocks.Item(block_name)
             block.Export(file_path)
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'esportazione del blocco '{block_name}' in '{file_path}': {e}")
+            raise AutoCADError(f"Error exporting block '{block_name}' to '{file_path}': {e}")
 
-    # Modifica degli attributi
+    # Modify a block attribute
     def modify_block_attribute(self, block_ref, tag, new_value):
         try:
             for attribute in block_ref.GetAttributes():
                 if attribute.TagString == tag:
                     attribute.TextString = new_value
         except Exception as e:
-            raise AutoCADError(f"Errore durante la modifica dell'attributo '{tag}' del blocco: {e}")
+            raise AutoCADError(f"Error modifying block attribute '{tag}': {e}")
 
-    # Cancellazione degli attributi
+    # Delete a block attribute
     def delete_block_attribute(self, block_ref, tag):
         try:
             for attribute in block_ref.GetAttributes():
                 if attribute.TagString == tag:
                     attribute.Delete()
         except Exception as e:
-            raise AutoCADError(f"Errore durante la cancellazione dell'attributo '{tag}' del blocco: {e}")
+            raise AutoCADError(f"Error deleting block attribute '{tag}': {e}")
 
-    # Richieste di input da utente
-    def get_user_input_point(self, prompt="Seleziona un punto"):
+    # Request point input from the user
+    def get_user_input_point(self, prompt="Select a point"):
         try:
             point = self.doc.Utility.GetPoint(None, prompt)
             return APoint(point[0], point[1], point[2])
         except Exception as e:
-            raise AutoCADError(f"Errore durante la richiesta del punto all'utente: {e}")
+            raise AutoCADError(f"Error getting point input from user: {e}")
 
-    def get_user_input_string(self, prompt="Inserisci un testo"):
+    # Request string input from the user
+    def get_user_input_string(self, prompt="Enter a string"):
         try:
             return self.doc.Utility.GetString(False, prompt)
         except Exception as e:
-            raise AutoCADError(f"Errore durante la richiesta della stringa all'utente: {e}")
+            raise AutoCADError(f"Error getting string input from user: {e}")
 
-    def get_user_input_integer(self, prompt="Inserisci un numero intero"):
+    # Request integer input from the user
+    def get_user_input_integer(self, prompt="Enter an integer"):
         try:
             return self.doc.Utility.GetInteger(prompt)
         except Exception as e:
-            raise AutoCADError(f"Errore durante la richiesta del numero intero all'utente: {e}")
+            raise AutoCADError(f"Error getting integer input from user: {e}")
 
-    # Messaggi di output all'utente
+    # Display a message to the user
     def show_message(self, message):
         try:
             self.doc.Utility.Prompt(message + "\n")
         except Exception as e:
-            raise AutoCADError(f"Errore durante la visualizzazione del messaggio: {e}")
+            raise AutoCADError(f"Error displaying message: {e}")
 
-    # Creazione di gruppi di oggetti
+    # Create a group of objects
     def create_group(self, group_name, objects):
         try:
             group = self.doc.Groups.Add(group_name)
@@ -436,31 +425,31 @@ class AutoCAD:
                 group.AppendItems([obj])
             return group
         except Exception as e:
-            raise AutoCADError(f"Errore durante la creazione del gruppo '{group_name}': {e}")
+            raise AutoCADError(f"Error creating group '{group_name}': {e}")
 
-    # Aggiungi oggetti a un gruppo
+    # Add objects to a group
     def add_to_group(self, group_name, objects):
         try:
             group = self.doc.Groups.Item(group_name)
             for obj in objects:
                 group.AppendItems([obj])
         except Exception as e:
-            raise AutoCADError(f"Errore durante l'aggiunta di oggetti al gruppo '{group_name}': {e}")
+            raise AutoCADError(f"Error adding objects to group '{group_name}': {e}")
 
-    # Rimuovi oggetti da un gruppo
+    # Remove objects from a group
     def remove_from_group(self, group_name, objects):
         try:
             group = self.doc.Groups.Item(group_name)
             for obj in objects:
                 group.RemoveItems([obj])
         except Exception as e:
-            raise AutoCADError(f"Errore durante la rimozione di oggetti dal gruppo '{group_name}': {e}")
+            raise AutoCADError(f"Error removing objects from group '{group_name}': {e}")
 
-    # Seleziona gruppi di oggetti
+    # Select a group of objects
     def select_group(self, group_name):
         try:
             group = self.doc.Groups.Item(group_name)
             return [item for item in group.GetItems()]
         except Exception as e:
-            raise AutoCADError(f"Errore durante la selezione del gruppo '{group_name}': {e}")
+            raise AutoCADError(f"Error selecting group '{group_name}': {e}")
 

@@ -23,6 +23,36 @@ class Color(Enum):
         except KeyError:
             raise ValueError(f"Color '{name}' is not a valid color name")
 
+# Enum to represent alignments in AutoCAD
+class Alignment(Enum):
+    LEFT = 'left'
+    CENTER = 'center'
+    RIGHT = 'right'
+
+# Enum to represent dimension types in AutoCAD
+class DimensionType(Enum):
+    ALIGNED = 'aligned'
+    LINEAR = 'linear'
+    ANGULAR = 'angular'
+    RADIAL = 'radial'
+    DIAMETER = 'diameter'
+
+# Enum to represent line styles in AutoCAD
+class LineStyle(Enum):
+    CONTINUOUS = 'Continuous'        # ------------
+    DASHED = 'Dashed'                # - - - - - - 
+    DOTTED = 'Dotted'                # . . . . . .
+    CENTER = 'Center'                # - . - . - .
+    HIDDEN = 'Hidden'                # - - - - - - 
+    PHANTOM = 'Phantom'              # - . . - . .
+    BREAK = 'Break'                  # -     -     
+    BORDER = 'Border'                # - - - . - -
+    DOT2 = 'Dot2'                    # .  .  .  . 
+    DOTX2 = 'DotX2'                  # .   .   .  
+    DIVIDE = 'Divide'                # -  .  -  .
+    TRACKING = 'Tracking'            # - .  - .  
+    DASHDOT = 'Dashdot'              # - . - . - 
+
 # Class to represent a 3D point
 class APoint:
     def __init__(self, x=0, y=0, z=0):
@@ -62,7 +92,7 @@ class BlockReference:
 
 # Class to represent a text object
 class Text:
-    def __init__(self, content, insertion_point, height, alignment='left'):
+    def __init__(self, content, insertion_point, height, alignment=Alignment.LEFT):
         self.content = content
         self.insertion_point = insertion_point
         self.height = height
@@ -73,7 +103,7 @@ class Text:
 
 # Class to represent a dimension
 class Dimension:
-    def __init__(self, start_point, end_point, text_point, dimension_type='aligned'):
+    def __init__(self, start_point, end_point, text_point, dimension_type=DimensionType.ALIGNED):
         self.start_point = start_point
         self.end_point = end_point
         self.text_point = text_point
@@ -160,11 +190,83 @@ class AutoCAD:
     def add_dimension(self, dimension):
         try:
             dimension_obj = None
-            if dimension.dimension_type == 'aligned':
+            if dimension.dimension_type == DimensionType.ALIGNED:
                 dimension_obj = self.modelspace.AddDimAligned(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+            elif dimension.dimension_type == DimensionType.LINEAR:
+                dimension_obj = self.modelspace.AddDimLinear(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+            elif dimension.dimension_type == DimensionType.ANGULAR:
+                dimension_obj = self.modelspace.AddDimAngular(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+            elif dimension.dimension_type == DimensionType.RADIAL:
+                dimension_obj = self.modelspace.AddDimRadial(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+            elif dimension.dimension_type == DimensionType.DIAMETER:
+                dimension_obj = self.modelspace.AddDimDiameter(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
             return dimension_obj
         except Exception as e:
             raise AutoCADError(f"Error adding dimension: {e}")
+
+    # Add a point to the model space
+    def add_point(self, point):
+        try:
+            point_obj = self.modelspace.AddPoint(point.to_variant())
+            return point_obj
+        except Exception as e:
+            raise AutoCADError(f"Error adding point: {e}")
+
+    # Add a polyline to the model space
+    def add_polyline(self, points):
+        try:
+            points_variant = win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, [coord for point in points for coord in point.to_tuple()])
+            polyline = self.modelspace.AddLightweightPolyline(points_variant)
+            return polyline
+        except Exception as e:
+            raise AutoCADError(f"Error adding polyline: {e}")
+
+    # Add a spline to the model space
+    def add_spline(self, points):
+        try:
+            points_variant = win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, [coord for point in points for coord in point.to_variant()])
+            spline = self.modelspace.AddSpline(points_variant)
+            return spline
+        except Exception as e:
+            raise AutoCADError(f"Error adding spline: {e}")
+
+    # Add an arc to the model space
+    def add_arc(self, center, radius, start_angle, end_angle):
+        try:
+            arc = self.modelspace.AddArc(center.to_variant(), radius, start_angle, end_angle)
+            return arc
+        except Exception as e:
+            raise AutoCADError(f"Error adding arc: {e}")
+
+    # Explode an object or a set of joined objects
+    def explode_object(self, obj):
+        try:
+            exploded_items = obj.Explode()
+            return exploded_items
+        except Exception as e:
+            raise AutoCADError(f"Error exploding object: {e}")
+
+    # Get maximum extents of a block
+    def get_block_extents(self, block_name):
+        try:
+            for entity in self.iter_objects("AcDbBlockReference"):
+                if entity.Name == block_name:
+                    min_point = APoint(*entity.GeometricExtents.MinPoint)
+                    max_point = APoint(*entity.GeometricExtents.MaxPoint)
+                    return min_point, max_point
+        except Exception as e:
+            raise AutoCADError(f"Error getting extents of block '{block_name}': {e}")
+
+    # Add overall dimensions to an object or block
+    def add_overall_dimensions(self, entity):
+        try:
+            min_point, max_point = APoint(*entity.GeometricExtents.MinPoint), APoint(*entity.GeometricExtents.MaxPoint)
+            # Horizontal dimension
+            self.add_dimension(Dimension(min_point, APoint(max_point.x, min_point.y, min_point.z), APoint(min_point.x, min_point.y - 5, min_point.z), DimensionType.ALIGNED))
+            # Vertical dimension
+            self.add_dimension(Dimension(min_point, APoint(min_point.x, max_point.y, min_point.z), APoint(min_point.x - 5, min_point.y, min_point.z), DimensionType.ALIGNED))
+        except Exception as e:
+            raise AutoCADError(f"Error adding overall dimensions: {e}")
 
     # Get user-defined blocks in the document
     def get_user_defined_blocks(self):
@@ -326,18 +428,22 @@ class AutoCAD:
             raise AutoCADError(f"Error rotating object: {e}")
 
     # Align objects
-    def align_objects(self, objects, alignment="left"):
+    def align_objects(self, objects, alignment=Alignment.LEFT):
         try:
             if not objects:
                 return
-            if alignment == "left":
+            if alignment == Alignment.LEFT:
                 min_x = min(obj.InsertionPoint[0] for obj in objects)
                 for obj in objects:
                     self.move_object(obj, APoint(min_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
-            elif alignment == "right":
+            elif alignment == Alignment.RIGHT:
                 max_x = max(obj.InsertionPoint[0] for obj in objects)
                 for obj in objects:
                     self.move_object(obj, APoint(max_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
+            elif alignment == Alignment.CENTER:
+                center_x = (min(obj.InsertionPoint[0] for obj in objects) + max(obj.InsertionPoint[0] for obj in objects)) / 2
+                for obj in objects:
+                    self.move_object(obj, APoint(center_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
         except Exception as e:
             raise AutoCADError(f"Error aligning objects: {e}")
 
@@ -452,4 +558,3 @@ class AutoCAD:
             return [item for item in group.GetItems()]
         except Exception as e:
             raise AutoCADError(f"Error selecting group '{group_name}': {e}")
-

@@ -34,8 +34,6 @@ Questa libreria Python fornisce una serie di classi e metodi per interagire con 
 
 Di seguito sono riportati alcuni esempi di utilizzo della libreria per automatizzare operazioni in AutoCAD.
 
-# Esempi di utilizzo delle classi AutoCAD
-
 ## Creazione dell'oggetto AutoCAD
 
 ```python

@@ -527,8 +527,17 @@ class AutoCAD:
     def create_group(self, group_name, objects):
         try:
             group = self.doc.Groups.Add(group_name)
-            for obj in objects:
-                group.AppendItems([obj])
+            
+            # Ensure objects is a list or tuple
+            if not isinstance(objects, (list, tuple)):
+                objects = [objects]
+            
+            # Create SAFEARRAY of IDispatch pointers
+            variant_array = win32com.client.VARIANT(
+                pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH,
+                objects
+            )
+            group.AppendItems(variant_array)
             return group
         except Exception as e:
             raise AutoCADError(f"Error creating group '{group_name}': {e}")

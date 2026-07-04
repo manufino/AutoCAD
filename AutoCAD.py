@@ -432,10 +432,27 @@ class AutoCAD:
         except Exception as e:
             raise AutoCADError(f"Error setting linetype of layer '{layer_name}': {e}") from e
 
+    # Get a stable reference point for an object, falling back to the center
+    # of its geometric extents when it has no InsertionPoint (e.g. lines,
+    # circles, polylines)
+    def _get_reference_point(self, obj):
+        try:
+            point = obj.InsertionPoint
+            return APoint(point[0], point[1], point[2])
+        except AttributeError:
+            extents = obj.GeometricExtents
+            min_point, max_point = extents.MinPoint, extents.MaxPoint
+            return APoint(
+                (min_point[0] + max_point[0]) / 2,
+                (min_point[1] + max_point[1]) / 2,
+                (min_point[2] + max_point[2]) / 2,
+            )
+
     # Move an object
     def move_object(self, obj, new_insertion_point):
         try:
-            obj.Move(obj.InsertionPoint, new_insertion_point.to_variant())
+            current_point = self._get_reference_point(obj)
+            obj.Move(current_point.to_variant(), new_insertion_point.to_variant())
         except Exception as e:
             raise AutoCADError(f"Error moving object: {e}") from e
 
@@ -458,18 +475,20 @@ class AutoCAD:
         try:
             if not objects:
                 return
+            reference_points = [(obj, self._get_reference_point(obj)) for obj in objects]
             if alignment == Alignment.LEFT:
-                min_x = min(obj.InsertionPoint[0] for obj in objects)
-                for obj in objects:
-                    self.move_object(obj, APoint(min_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
+                min_x = min(point.x for _, point in reference_points)
+                for obj, point in reference_points:
+                    self.move_object(obj, APoint(min_x, point.y, point.z))
             elif alignment == Alignment.RIGHT:
-                max_x = max(obj.InsertionPoint[0] for obj in objects)
-                for obj in objects:
-                    self.move_object(obj, APoint(max_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
+                max_x = max(point.x for _, point in reference_points)
+                for obj, point in reference_points:
+                    self.move_object(obj, APoint(max_x, point.y, point.z))
             elif alignment == Alignment.CENTER:
-                center_x = (min(obj.InsertionPoint[0] for obj in objects) + max(obj.InsertionPoint[0] for obj in objects)) / 2
-                for obj in objects:
-                    self.move_object(obj, APoint(center_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
+                xs = [point.x for _, point in reference_points]
+                center_x = (min(xs) + max(xs)) / 2
+                for obj, point in reference_points:
+                    self.move_object(obj, APoint(center_x, point.y, point.z))
         except Exception as e:
             raise AutoCADError(f"Error aligning objects: {e}") from e
 
@@ -478,10 +497,12 @@ class AutoCAD:
         try:
             if not objects:
                 return
-            objects.sort(key=lambda obj: obj.InsertionPoint[0])
+            objects.sort(key=lambda obj: self._get_reference_point(obj).x)
             for i in range(1, len(objects)):
-                new_x = objects[i-1].InsertionPoint[0] + spacing
-                self.move_object(objects[i], APoint(new_x, objects[i].InsertionPoint[1], objects[i].InsertionPoint[2]))
+                previous_point = self._get_reference_point(objects[i - 1])
+                current_point = self._get_reference_point(objects[i])
+                new_x = previous_point.x + spacing
+                self.move_object(objects[i], APoint(new_x, current_point.y, current_point.z))
         except Exception as e:
             raise AutoCADError(f"Error distributing objects: {e}") from e
 

@@ -137,7 +137,7 @@ class AutoCAD:
             self.doc = self.acad.ActiveDocument
             self.modelspace = self.doc.ModelSpace
         except Exception as e:
-            raise AutoCADError(f"Error initializing AutoCAD: {e}")
+            raise AutoCADError(f"Error initializing AutoCAD: {e}") from e
 
     # Iterate over objects in the model space, optionally filtering by object type
     def iter_objects(self, object_type=None):
@@ -151,7 +151,7 @@ class AutoCAD:
             circle = self.modelspace.AddCircle(center.to_variant(), radius)
             return circle
         except Exception as e:
-            raise AutoCADError(f"Error adding circle: {e}")
+            raise AutoCADError(f"Error adding circle: {e}") from e
 
     # Add a line to the model space
     def add_line(self, start_point, end_point):
@@ -159,7 +159,7 @@ class AutoCAD:
             line = self.modelspace.AddLine(start_point.to_variant(), end_point.to_variant())
             return line
         except Exception as e:
-            raise AutoCADError(f"Error adding line: {e}")
+            raise AutoCADError(f"Error adding line: {e}") from e
 
     # Add a rectangle to the model space
     def add_rectangle(self, lower_left, upper_right):
@@ -177,7 +177,7 @@ class AutoCAD:
             polyline = self.modelspace.AddLightweightPolyline(points_variant)
             return polyline
         except Exception as e:
-            raise AutoCADError(f"Error adding rectangle: {e}")
+            raise AutoCADError(f"Error adding rectangle: {e}") from e
 
     # Add an ellipse to the model space
     def add_ellipse(self, center, major_axis, ratio):
@@ -185,7 +185,7 @@ class AutoCAD:
             ellipse = self.modelspace.AddEllipse(center.to_variant(), major_axis.to_variant(), ratio)
             return ellipse
         except Exception as e:
-            raise AutoCADError(f"Error adding ellipse: {e}")
+            raise AutoCADError(f"Error adding ellipse: {e}") from e
 
     # Add a text object to the model space
     def add_text(self, text):
@@ -193,7 +193,7 @@ class AutoCAD:
             text_obj = self.modelspace.AddText(text.content, text.insertion_point.to_variant(), text.height)
             return text_obj
         except Exception as e:
-            raise AutoCADError(f"Error adding text: {e}")
+            raise AutoCADError(f"Error adding text: {e}") from e
 
     # Add a dimension to the model space
     def add_dimension(self, dimension):
@@ -234,7 +234,7 @@ class AutoCAD:
             point_obj = self.modelspace.AddPoint(point.to_variant())
             return point_obj
         except Exception as e:
-            raise AutoCADError(f"Error adding point: {e}")
+            raise AutoCADError(f"Error adding point: {e}") from e
 
     # Add a polyline to the model space
     def add_polyline(self, points):
@@ -243,7 +243,7 @@ class AutoCAD:
             polyline = self.modelspace.AddLightweightPolyline(points_variant)
             return polyline
         except Exception as e:
-            raise AutoCADError(f"Error adding polyline: {e}")
+            raise AutoCADError(f"Error adding polyline: {e}") from e
 
     # Add a spline to the model space
     def add_spline(self, points):
@@ -252,7 +252,7 @@ class AutoCAD:
             spline = self.modelspace.AddSpline(points_variant)
             return spline
         except Exception as e:
-            raise AutoCADError(f"Error adding spline: {e}")
+            raise AutoCADError(f"Error adding spline: {e}") from e
 
     # Add an arc to the model space
     def add_arc(self, center, radius, start_angle, end_angle):
@@ -260,7 +260,7 @@ class AutoCAD:
             arc = self.modelspace.AddArc(center.to_variant(), radius, start_angle, end_angle)
             return arc
         except Exception as e:
-            raise AutoCADError(f"Error adding arc: {e}")
+            raise AutoCADError(f"Error adding arc: {e}") from e
 
     # Explode an object or a set of joined objects
     def explode_object(self, obj):
@@ -268,7 +268,7 @@ class AutoCAD:
             exploded_items = obj.Explode()
             return exploded_items
         except Exception as e:
-            raise AutoCADError(f"Error exploding object: {e}")
+            raise AutoCADError(f"Error exploding object: {e}") from e
 
     # Get maximum extents of a block
     def get_block_extents(self, block_name):
@@ -279,7 +279,7 @@ class AutoCAD:
                     max_point = APoint(*entity.GeometricExtents.MaxPoint)
                     return min_point, max_point
         except Exception as e:
-            raise AutoCADError(f"Error getting extents of block '{block_name}': {e}")
+            raise AutoCADError(f"Error getting extents of block '{block_name}': {e}") from e
 
     # Add overall dimensions to an object or block
     def add_overall_dimensions(self, entity):
@@ -290,7 +290,7 @@ class AutoCAD:
             # Vertical dimension
             self.add_dimension(Dimension(min_point, APoint(min_point.x, max_point.y, min_point.z), APoint(min_point.x - 5, min_point.y, min_point.z), DimensionType.ALIGNED))
         except Exception as e:
-            raise AutoCADError(f"Error adding overall dimensions: {e}")
+            raise AutoCADError(f"Error adding overall dimensions: {e}") from e
 
     # Get user-defined blocks in the document
     def get_user_defined_blocks(self):
@@ -300,7 +300,7 @@ class AutoCAD:
                                    if not block.IsLayout and not block.Name.startswith('*') and block.Name != 'GENAXEH']
             return user_defined_blocks
         except Exception as e:
-            raise AutoCADError(f"Error getting user-defined blocks: {e}")
+            raise AutoCADError(f"Error getting user-defined blocks: {e}") from e
 
     # Create a new layer
     def create_layer(self, layer):
@@ -310,14 +310,14 @@ class AutoCAD:
             new_layer.Color = layer.color.value
             return new_layer
         except Exception as e:
-            raise AutoCADError(f"Error creating layer '{layer.name}': {e}")
+            raise AutoCADError(f"Error creating layer '{layer.name}': {e}") from e
 
     # Set the active layer
     def set_active_layer(self, layer_name):
         try:
             self.doc.ActiveLayer = self.doc.Layers.Item(layer_name)
         except Exception as e:
-            raise AutoCADError(f"Error setting active layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error setting active layer '{layer_name}': {e}") from e
 
     # Insert a block into the model space
     def insert_block(self, block):
@@ -325,21 +325,21 @@ class AutoCAD:
             block_ref = self.modelspace.InsertBlock(block.insertion_point.to_variant(), block.name, block.scale, block.scale, block.scale, block.rotation)
             return block_ref
         except Exception as e:
-            raise AutoCADError(f"Error inserting block '{block.name}': {e}")
+            raise AutoCADError(f"Error inserting block '{block.name}': {e}") from e
 
     # Save the document with a new name
     def save_as(self, file_path):
         try:
             self.doc.SaveAs(file_path)
         except Exception as e:
-            raise AutoCADError(f"Error saving document as '{file_path}': {e}")
+            raise AutoCADError(f"Error saving document as '{file_path}': {e}") from e
 
     # Open an existing file
     def open_file(self, file_path):
         try:
             self.acad.Documents.Open(file_path)
         except Exception as e:
-            raise AutoCADError(f"Error opening file '{file_path}': {e}")
+            raise AutoCADError(f"Error opening file '{file_path}': {e}") from e
 
     # Get the insertion coordinates of a specific block
     def get_block_coordinates(self, block_name):
@@ -351,14 +351,14 @@ class AutoCAD:
                     block_references.append(APoint(insertion_point[0], insertion_point[1], insertion_point[2]))
             return block_references
         except Exception as e:
-            raise AutoCADError(f"Error getting coordinates of block '{block_name}': {e}")
+            raise AutoCADError(f"Error getting coordinates of block '{block_name}': {e}") from e
 
     # Delete an object
     def delete_object(self, obj):
         try:
             obj.Delete()
         except Exception as e:
-            raise AutoCADError(f"Error deleting object: {e}")
+            raise AutoCADError(f"Error deleting object: {e}") from e
 
     # Clone an object
     def clone_object(self, obj, new_insertion_point):
@@ -366,14 +366,14 @@ class AutoCAD:
             cloned_obj = obj.Copy(new_insertion_point.to_variant())
             return cloned_obj
         except Exception as e:
-            raise AutoCADError(f"Error cloning object: {e}")
+            raise AutoCADError(f"Error cloning object: {e}") from e
 
     # Modify a property of an object
     def modify_object_property(self, obj, property_name, new_value):
         try:
             setattr(obj, property_name, new_value)
         except Exception as e:
-            raise AutoCADError(f"Error modifying property '{property_name}' of object: {e}")
+            raise AutoCADError(f"Error modifying property '{property_name}' of object: {e}") from e
 
     # Repeat a block horizontally until a specified length is reached
     def repeat_block_horizontally(self, block_name, total_length, block_length, insertion_point):
@@ -385,7 +385,7 @@ class AutoCAD:
                 new_insertion_point = APoint(x + i * block_length, y, z)
                 self.insert_block(BlockReference(block_name, new_insertion_point))
         except Exception as e:
-            raise AutoCADError(f"Error repeating block '{block_name}' horizontally: {e}")
+            raise AutoCADError(f"Error repeating block '{block_name}' horizontally: {e}") from e
 
     # Set the visibility of a layer
     def set_layer_visibility(self, layer_name, visible=True):
@@ -393,7 +393,7 @@ class AutoCAD:
             layer = self.doc.Layers.Item(layer_name)
             layer.LayerOn = visible
         except Exception as e:
-            raise AutoCADError(f"Error setting visibility of layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error setting visibility of layer '{layer_name}': {e}") from e
 
     # Lock or unlock a layer
     def lock_layer(self, layer_name, lock=True):
@@ -401,7 +401,7 @@ class AutoCAD:
             layer = self.doc.Layers.Item(layer_name)
             layer.Lock = lock
         except Exception as e:
-            raise AutoCADError(f"Error locking/unlocking layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error locking/unlocking layer '{layer_name}': {e}") from e
 
     # Delete a layer
     def delete_layer(self, layer_name):
@@ -409,7 +409,7 @@ class AutoCAD:
             layer = self.doc.Layers.Item(layer_name)
             layer.Delete()
         except Exception as e:
-            raise AutoCADError(f"Error deleting layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error deleting layer '{layer_name}': {e}") from e
 
     # Change the color of a layer
     def change_layer_color(self, layer_name, color):
@@ -417,7 +417,7 @@ class AutoCAD:
             layer = self.doc.Layers.Item(layer_name)
             layer.color = color.value
         except Exception as e:
-            raise AutoCADError(f"Error changing color of layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error changing color of layer '{layer_name}': {e}") from e
 
     # Set the linetype of a layer
     def set_layer_linetype(self, layer_name, linetype_name):
@@ -428,28 +428,28 @@ class AutoCAD:
                 self.doc.Linetypes.Load(linetype_name, linetype_name)
             layer.Linetype = linetype_name
         except Exception as e:
-            raise AutoCADError(f"Error setting linetype of layer '{layer_name}': {e}")
+            raise AutoCADError(f"Error setting linetype of layer '{layer_name}': {e}") from e
 
     # Move an object
     def move_object(self, obj, new_insertion_point):
         try:
             obj.Move(obj.InsertionPoint, new_insertion_point.to_variant())
         except Exception as e:
-            raise AutoCADError(f"Error moving object: {e}")
+            raise AutoCADError(f"Error moving object: {e}") from e
 
     # Scale an object
     def scale_object(self, obj, base_point, scale_factor):
         try:
             obj.ScaleEntity(base_point.to_variant(), scale_factor)
         except Exception as e:
-            raise AutoCADError(f"Error scaling object: {e}")
+            raise AutoCADError(f"Error scaling object: {e}") from e
 
     # Rotate an object
     def rotate_object(self, obj, base_point, rotation_angle):
         try:
             obj.Rotate(base_point.to_variant(), rotation_angle)
         except Exception as e:
-            raise AutoCADError(f"Error rotating object: {e}")
+            raise AutoCADError(f"Error rotating object: {e}") from e
 
     # Align objects
     def align_objects(self, objects, alignment=Alignment.LEFT):
@@ -469,7 +469,7 @@ class AutoCAD:
                 for obj in objects:
                     self.move_object(obj, APoint(center_x, obj.InsertionPoint[1], obj.InsertionPoint[2]))
         except Exception as e:
-            raise AutoCADError(f"Error aligning objects: {e}")
+            raise AutoCADError(f"Error aligning objects: {e}") from e
 
     # Distribute objects with specified spacing
     def distribute_objects(self, objects, spacing):
@@ -481,7 +481,7 @@ class AutoCAD:
                 new_x = objects[i-1].InsertionPoint[0] + spacing
                 self.move_object(objects[i], APoint(new_x, objects[i].InsertionPoint[1], objects[i].InsertionPoint[2]))
         except Exception as e:
-            raise AutoCADError(f"Error distributing objects: {e}")
+            raise AutoCADError(f"Error distributing objects: {e}") from e
 
     # Insert a block from a file
     def insert_block_from_file(self, file_path, insertion_point, scale=1.0, rotation=0.0):
@@ -490,7 +490,7 @@ class AutoCAD:
             block_ref = self.modelspace.InsertBlock(insertion_point.to_variant(), block_name, scale, scale, scale, rotation)
             return block_ref
         except Exception as e:
-            raise AutoCADError(f"Error inserting block from file '{file_path}': {e}")
+            raise AutoCADError(f"Error inserting block from file '{file_path}': {e}") from e
 
     # Export a block to a file
     def export_block_to_file(self, block_name, file_path):
@@ -498,7 +498,7 @@ class AutoCAD:
             block = self.doc.Blocks.Item(block_name)
             block.Export(file_path)
         except Exception as e:
-            raise AutoCADError(f"Error exporting block '{block_name}' to '{file_path}': {e}")
+            raise AutoCADError(f"Error exporting block '{block_name}' to '{file_path}': {e}") from e
 
     # Modify a block attribute
     def modify_block_attribute(self, block_ref, tag, new_value):
@@ -507,7 +507,7 @@ class AutoCAD:
                 if attribute.TagString == tag:
                     attribute.TextString = new_value
         except Exception as e:
-            raise AutoCADError(f"Error modifying block attribute '{tag}': {e}")
+            raise AutoCADError(f"Error modifying block attribute '{tag}': {e}") from e
 
     # Delete a block attribute
     def delete_block_attribute(self, block_ref, tag):
@@ -516,7 +516,7 @@ class AutoCAD:
                 if attribute.TagString == tag:
                     attribute.Delete()
         except Exception as e:
-            raise AutoCADError(f"Error deleting block attribute '{tag}': {e}")
+            raise AutoCADError(f"Error deleting block attribute '{tag}': {e}") from e
 
     # Request point input from the user
     def get_user_input_point(self, prompt="Select a point"):
@@ -524,28 +524,28 @@ class AutoCAD:
             point = self.doc.Utility.GetPoint(None, prompt)
             return APoint(point[0], point[1], point[2])
         except Exception as e:
-            raise AutoCADError(f"Error getting point input from user: {e}")
+            raise AutoCADError(f"Error getting point input from user: {e}") from e
 
     # Request string input from the user
     def get_user_input_string(self, prompt="Enter a string"):
         try:
             return self.doc.Utility.GetString(False, prompt)
         except Exception as e:
-            raise AutoCADError(f"Error getting string input from user: {e}")
+            raise AutoCADError(f"Error getting string input from user: {e}") from e
 
     # Request integer input from the user
     def get_user_input_integer(self, prompt="Enter an integer"):
         try:
             return self.doc.Utility.GetInteger(prompt)
         except Exception as e:
-            raise AutoCADError(f"Error getting integer input from user: {e}")
+            raise AutoCADError(f"Error getting integer input from user: {e}") from e
 
     # Display a message to the user
     def show_message(self, message):
         try:
             self.doc.Utility.Prompt(message + "\n")
         except Exception as e:
-            raise AutoCADError(f"Error displaying message: {e}")
+            raise AutoCADError(f"Error displaying message: {e}") from e
 
     # Create a group of objects
     def create_group(self, group_name, objects):
@@ -564,7 +564,7 @@ class AutoCAD:
             group.AppendItems(variant_array)
             return group
         except Exception as e:
-            raise AutoCADError(f"Error creating group '{group_name}': {e}")
+            raise AutoCADError(f"Error creating group '{group_name}': {e}") from e
 
     # Add objects to a group
     def add_to_group(self, group_name, objects):
@@ -573,7 +573,7 @@ class AutoCAD:
             for obj in objects:
                 group.AppendItems([obj])
         except Exception as e:
-            raise AutoCADError(f"Error adding objects to group '{group_name}': {e}")
+            raise AutoCADError(f"Error adding objects to group '{group_name}': {e}") from e
 
     # Remove objects from a group
     def remove_from_group(self, group_name, objects):
@@ -582,7 +582,7 @@ class AutoCAD:
             for obj in objects:
                 group.RemoveItems([obj])
         except Exception as e:
-            raise AutoCADError(f"Error removing objects from group '{group_name}': {e}")
+            raise AutoCADError(f"Error removing objects from group '{group_name}': {e}") from e
 
     # Select a group of objects
     def select_group(self, group_name):
@@ -590,4 +590,4 @@ class AutoCAD:
             group = self.doc.Groups.Item(group_name)
             return [item for item in group.GetItems()]
         except Exception as e:
-            raise AutoCADError(f"Error selecting group '{group_name}': {e}")
+            raise AutoCADError(f"Error selecting group '{group_name}': {e}") from e

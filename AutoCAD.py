@@ -298,8 +298,8 @@ class AutoCAD:
     def get_user_defined_blocks(self):
         try:
             blocks = self.doc.Blocks
-            user_defined_blocks = [block.Name for block in blocks 
-                                   if not block.IsLayout and not block.Name.startswith('*') and block.Name != 'GENAXEH']
+            user_defined_blocks = [block.Name for block in blocks
+                                   if not block.IsLayout and not block.Name.startswith('*')]
             return user_defined_blocks
         except Exception as e:
             raise AutoCADError(f"Error getting user-defined blocks: {e}") from e

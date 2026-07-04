@@ -103,15 +103,23 @@ class Text:
 
 # Class to represent a dimension
 class Dimension:
-    def __init__(self, start_point, end_point, text_point, dimension_type=DimensionType.ALIGNED, rotation_angle=0.0):
+    def __init__(self, start_point, end_point, text_point=None, dimension_type=DimensionType.ALIGNED,
+                 rotation_angle=0.0, vertex_point=None, leader_length=None):
         self.start_point = start_point
         self.end_point = end_point
         self.text_point = text_point
         self.dimension_type = dimension_type
         self.rotation_angle = rotation_angle
+        # Angle vertex, required by ANGULAR dimensions
+        self.vertex_point = vertex_point
+        # Leader length, required by RADIAL and DIAMETER dimensions
+        self.leader_length = leader_length
 
     def __repr__(self):
-        return f"Dimension(start_point={self.start_point}, end_point={self.end_point}, text_point={self.text_point}, dimension_type='{self.dimension_type}', rotation_angle={self.rotation_angle})"
+        return (f"Dimension(start_point={self.start_point}, end_point={self.end_point}, "
+                f"text_point={self.text_point}, dimension_type='{self.dimension_type}', "
+                f"rotation_angle={self.rotation_angle}, vertex_point={self.vertex_point}, "
+                f"leader_length={self.leader_length})")
 
 # Custom class for handling AutoCAD errors
 class AutoCADError(Exception):
@@ -198,14 +206,27 @@ class AutoCAD:
                 # dimension is created via AddDimRotated with a rotation angle.
                 dimension_obj = self.modelspace.AddDimRotated(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant(), dimension.rotation_angle)
             elif dimension.dimension_type == DimensionType.ANGULAR:
-                dimension_obj = self.modelspace.AddDimAngular(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+                # AddDimAngular needs the angle vertex plus the two points on
+                # the lines being measured; the constructor's start/end points
+                # alone are not enough.
+                if dimension.vertex_point is None:
+                    raise ValueError("ANGULAR dimensions require 'vertex_point' (the angle vertex)")
+                dimension_obj = self.modelspace.AddDimAngular(dimension.vertex_point.to_variant(), dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
             elif dimension.dimension_type == DimensionType.RADIAL:
-                dimension_obj = self.modelspace.AddDimRadial(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+                # AddDimRadial takes a leader length (a number), not a text point.
+                if dimension.leader_length is None:
+                    raise ValueError("RADIAL dimensions require 'leader_length'")
+                dimension_obj = self.modelspace.AddDimRadial(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.leader_length)
             elif dimension.dimension_type == DimensionType.DIAMETER:
-                dimension_obj = self.modelspace.AddDimDiameter(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+                # The real Automation method is AddDimDiametric (not
+                # AddDimDiameter) and it also takes a leader length, not a
+                # text point.
+                if dimension.leader_length is None:
+                    raise ValueError("DIAMETER dimensions require 'leader_length'")
+                dimension_obj = self.modelspace.AddDimDiametric(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.leader_length)
             return dimension_obj
         except Exception as e:
-            raise AutoCADError(f"Error adding dimension: {e}")
+            raise AutoCADError(f"Error adding dimension: {e}") from e
 
     # Add a point to the model space
     def add_point(self, point):

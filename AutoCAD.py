@@ -361,6 +361,15 @@ class AutoCAD:
         except Exception as e:
             raise AutoCADError(f"Error getting coordinates of block '{block_name}': {e}") from e
 
+    # Get the actual block reference objects matching a given block name
+    # (use this instead of get_block_coordinates when you need to operate
+    # on the entities themselves, e.g. to read/modify their attributes)
+    def get_block_references(self, block_name):
+        try:
+            return [entity for entity in self.iter_objects("AcDbBlockReference") if entity.Name == block_name]
+        except Exception as e:
+            raise AutoCADError(f"Error getting block references for '{block_name}': {e}") from e
+
     # Delete an object
     def delete_object(self, obj):
         try:

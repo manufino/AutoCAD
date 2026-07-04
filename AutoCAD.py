@@ -103,14 +103,15 @@ class Text:
 
 # Class to represent a dimension
 class Dimension:
-    def __init__(self, start_point, end_point, text_point, dimension_type=DimensionType.ALIGNED):
+    def __init__(self, start_point, end_point, text_point, dimension_type=DimensionType.ALIGNED, rotation_angle=0.0):
         self.start_point = start_point
         self.end_point = end_point
         self.text_point = text_point
         self.dimension_type = dimension_type
+        self.rotation_angle = rotation_angle
 
     def __repr__(self):
-        return f"Dimension(start_point={self.start_point}, end_point={self.end_point}, text_point={self.text_point}, dimension_type='{self.dimension_type}')"
+        return f"Dimension(start_point={self.start_point}, end_point={self.end_point}, text_point={self.text_point}, dimension_type='{self.dimension_type}', rotation_angle={self.rotation_angle})"
 
 # Custom class for handling AutoCAD errors
 class AutoCADError(Exception):
@@ -193,7 +194,9 @@ class AutoCAD:
             if dimension.dimension_type == DimensionType.ALIGNED:
                 dimension_obj = self.modelspace.AddDimAligned(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
             elif dimension.dimension_type == DimensionType.LINEAR:
-                dimension_obj = self.modelspace.AddDimLinear(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
+                # AutoCAD's Automation API has no AddDimLinear method; a linear
+                # dimension is created via AddDimRotated with a rotation angle.
+                dimension_obj = self.modelspace.AddDimRotated(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant(), dimension.rotation_angle)
             elif dimension.dimension_type == DimensionType.ANGULAR:
                 dimension_obj = self.modelspace.AddDimAngular(dimension.start_point.to_variant(), dimension.end_point.to_variant(), dimension.text_point.to_variant())
             elif dimension.dimension_type == DimensionType.RADIAL:

@@ -132,9 +132,15 @@ class AutoCADError(Exception):
 
 # Main class for interacting with AutoCAD
 class AutoCAD:
-    def __init__(self):
+    def __init__(self, attach_to_running=True):
         try:
-            self.acad = win32com.client.Dispatch("AutoCAD.Application")
+            if attach_to_running:
+                try:
+                    self.acad = win32com.client.GetActiveObject("AutoCAD.Application")
+                except pythoncom.com_error:
+                    self.acad = win32com.client.Dispatch("AutoCAD.Application")
+            else:
+                self.acad = win32com.client.Dispatch("AutoCAD.Application")
             self.acad.Visible = True
             self.doc = self.acad.ActiveDocument
             self.modelspace = self.doc.ModelSpace

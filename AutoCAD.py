@@ -1,6 +1,9 @@
+import logging
 import win32com.client
 import pythoncom
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 # Enum to represent common colors in AutoCAD
 class Color(Enum):
@@ -125,8 +128,7 @@ class Dimension:
 class AutoCADError(Exception):
     def __init__(self, message):
         super().__init__(message)
-        # Additional error handling logic can be added here, such as logging to a file
-        print(f"AutoCADError: {message}")
+        logger.error(message)
 
 # Main class for interacting with AutoCAD
 class AutoCAD:

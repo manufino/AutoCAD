@@ -1,4 +1,3 @@
-
 # AutoCAD Python Automation
 
 This Python library provides a set of classes and methods to interact with AutoCAD using the COM API. The library allows automating many common operations in AutoCAD, such as creating and managing layers, objects, blocks, attributes, and groups of objects. Additionally, you can directly draw various primitives like lines, circles, ellipses, and rectangles in AutoCAD.
@@ -11,10 +10,11 @@ This Python library provides a set of classes and methods to interact with AutoC
 - **Attribute Management**: Add, modify, and delete block attributes.
 - **User Input and Output**: Request input from the user (points, strings, integers) and display messages.
 - **Group Management**: Create, modify, add/remove objects, and select groups.
+- **Dimensioning**: Add aligned, linear, angular, radial, and diametric dimensions.
 
 ## Requirements
 
-- AutoCAD installed on the system.
+- AutoCAD installed and running on Windows (this library talks to AutoCAD through its COM Automation API, which is Windows-only).
 - Python 3.x.
 - `pywin32` package installed (installable via pip).
 
@@ -22,7 +22,7 @@ This Python library provides a set of classes and methods to interact with AutoC
 
 1. Clone this repository:
    ```sh
-   git clone https://github.com/your-username/autocad-python-automation.git
+   git clone https://github.com/manufino/AutoCAD.git
    ```
 
 2. Install the dependencies:
@@ -37,8 +37,12 @@ Below are some examples of how to use the library to automate operations in Auto
 ### Create the AutoCAD object
 
 ```python
-# Create the AutoCAD object
+# Attaches to an already-running AutoCAD instance if one exists,
+# otherwise launches a new one (default behavior)
 acad = AutoCAD()
+
+# Force launching a brand new AutoCAD instance instead
+acad = AutoCAD(attach_to_running=False)
 ```
 
 ### Draw a Line
@@ -99,6 +103,34 @@ text = Text(text_content, insertion_point, text_height)
 acad.add_text(text)
 ```
 
+### Add Dimensions
+
+```python
+# Aligned dimension
+acad.add_dimension(Dimension(
+    APoint(0, 0), APoint(600, 0), APoint(0, -50),
+    dimension_type=DimensionType.ALIGNED
+))
+
+# Linear (rotated) dimension: 0 degrees measures the horizontal distance
+acad.add_dimension(Dimension(
+    APoint(0, 0), APoint(600, -600), APoint(-1000, -300),
+    dimension_type=DimensionType.LINEAR, rotation_angle=0
+))
+
+# Angular dimension requires the angle vertex in addition to the two points
+acad.add_dimension(Dimension(
+    APoint(600, 0), APoint(0, 600), APoint(300, 300),
+    dimension_type=DimensionType.ANGULAR, vertex_point=APoint(0, 0)
+))
+
+# Radial and diametric dimensions take a leader length instead of a text point
+acad.add_dimension(Dimension(
+    APoint(0, 0), APoint(100, 0),
+    dimension_type=DimensionType.RADIAL, leader_length=20
+))
+```
+
 ### Repeat block horizontally
 
 ```python
@@ -149,8 +181,9 @@ acad.set_layer_linetype("Assi", "DASHED")
 ### Select objects
 
 ```python
-# Select objects
-selected_objects = acad.select_objects(object_type="AcDbLine", layer_name="Contorni")
+# Iterate over model space objects, optionally filtering by entity type,
+# and further filter by any object property (e.g. layer)
+selected_objects = [obj for obj in acad.iter_objects(object_type="AcLine") if obj.Layer == "Contorni"]
 print(f"Selected objects: {len(selected_objects)}")
 ```
 
@@ -168,7 +201,7 @@ for obj in selected_objects:
 
 ```python
 # Align and distribute objects
-acad.align_objects(selected_objects, alignment="left")
+acad.align_objects(selected_objects, alignment=Alignment.LEFT)
 acad.distribute_objects(selected_objects, spacing=5)
 ```
 
@@ -190,7 +223,7 @@ acad.export_block_to_file("piatto", "path_to_export.dwg")
 
 ```python
 # Modify block attributes
-block_references = acad.get_block_coordinates("piatto")
+block_references = acad.get_block_references("piatto")
 if block_references:
     block_ref = block_references[0]  # Get the first found block
     acad.modify_block_attribute(block_ref, "Tag", "NewValue")
@@ -247,3 +280,16 @@ acad.remove_from_group("MyGroup", selected_objects)
 group_items = acad.select_group("MyGroup")
 print(f"Objects in group 'MyGroup': {len(group_items)}")
 ```
+
+## Error Handling
+
+Every method wraps AutoCAD/COM failures in an `AutoCADError`, which also logs the message via the standard `logging` module. Catch it around calls you want to handle gracefully:
+
+```python
+try:
+    acad.delete_layer("NonExistentLayer")
+except AutoCADError as e:
+    print(f"Operation failed: {e}")
+```
+
+The original exception is preserved as `e.__cause__`, so `traceback.print_exc()` still shows the real COM error underneath.
